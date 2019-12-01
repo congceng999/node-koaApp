@@ -18,6 +18,6 @@ console.log(b) // 10
 console.log(c) // 20
 
 // 但a，b，c也被挂载在window对象（全局作用域）上面了
-console.log(window.a) // 10
+console.log(window.a) // 10·
 console.log(window.b) // 20
 console.log(window.c) // 30
