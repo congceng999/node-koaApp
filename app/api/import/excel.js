@@ -68,27 +68,38 @@ router.post('/importExcel', async (ctx, next) => {
     errupload(rep,ctx)
      
   } else {
+    let reponseData = []
     for (let item of importData) {
       const result = await Productlist.findOne({
         where: {
-          drawingNum: item.drawingNum
+          drawingNum: item.drawingNum,
+          state: 1
         }
       })
+      if(result) {
+        const { factStock, belong, internalClassify, drawingNum, productName, remark, productId } = result
 
-      const { factStock, belong, internalClassify, drawingNum, productName, remark, productId } = result
+        const sum = ((factStock || 0) - Number(item.outLibNum))
+        // console.log(sum)
+        const upda = await Productlist.update({ factStock: sum }, {
+          where: {
+            drawingNum: item.drawingNum
+          }
+        })
+        const outLibObj = Object.assign({}, { belong, internalClassify, drawingNum, productName, remark, outLibNum: item.outLibNum, productId, outLibtime: outLibtime })
 
-      const sum = ((factStock || 0) - Number(item.outLibNum))
-      // console.log(sum)
-      const upda = await Productlist.update({ factStock: sum }, {
-        where: {
-          drawingNum: item.drawingNum
-        }
-      })
-      const outLibObj = Object.assign({}, { belong, internalClassify, drawingNum, productName, remark, outLibNum: item.outLibNum, productId, outLibtime: outLibtime })
-
-      const r = await OutStorageList.createOutStorage(outLibObj)
+        const r = await OutStorageList.createOutStorage(outLibObj)
+      } else {
+        reponseData.push(item)
+      }
+      
     }
-    handleResult('出库成功')
+    if (reponseData.length === 0) {
+      handleResult('出库成功')
+    } else {
+      errupload(reponseData, ctx)
+    }
+     
   }
 })
 

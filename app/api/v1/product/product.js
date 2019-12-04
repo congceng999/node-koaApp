@@ -25,11 +25,6 @@ router.post('/newproduct',new Auth(32).m, async (ctx) => {
 })
 //查询产品
 router.get('/getstorelist', async ctx => {
-  // ctx.body = {
-  //   data:r,
-  //   code: '200',
-  //   msg: '查询成功'
-  // }
   let {
     page = 1,
     pageSize = 100,
@@ -38,7 +33,8 @@ router.get('/getstorelist', async ctx => {
     belong,
     safetyStock,
     caveat,
-    remark
+    remark,
+    state
   } = ctx.request.query;
   let limit = page * pageSize;
   let offset = page - 1;
@@ -48,6 +44,7 @@ router.get('/getstorelist', async ctx => {
     belong,
     safetyStock,
     remark,
+    state: state || 1,
     Init: initalSearchValue
   }
   // console.log(search.Init)
@@ -57,14 +54,6 @@ router.get('/getstorelist', async ctx => {
   } else {
     params = search.Init()
   }
-  // console.log(params)
-  // if (caveat === '1') {
-
-  // }
-  // if (drawingNum) {
-  //   search['drawingNum'] = drawingNum
-  // }
-  // console.log(params)
   let productList = await Productlist.findAndCountAll({
     offset: parseInt(offset),
     limit,
@@ -73,17 +62,6 @@ router.get('/getstorelist', async ctx => {
     get: { plain: true }
   }).then(res => {
     let result = {};
-    // for(let key in res.rows) {
-    //   console.log(key)
-    // }
-    // console.log(res.toJSON())
-
-    // for (let i of result.data) {
-    //   console.log(i)
-    //   Object.keys(i).forEach(key=>{
-    //     console.log(key)
-    //   })
-    // }
     if (caveat) {
       let newArr = []
       const data = JSON.parse(JSON.stringify(res.rows))
@@ -94,12 +72,6 @@ router.get('/getstorelist', async ctx => {
           if (Number(item['safetyStock']) < Number(item['factStock'])) {
             newArr.push(item)
           }
-          // Object.keys(item).forEach(key => {
-          //   if (Number(item['safetyStock'] < Number(item['factStock']))) {
-          //     newArr.push(item)
-          //     return
-          //   }
-          // })
         })
       }
       if (caveat === '1') {
@@ -109,12 +81,6 @@ router.get('/getstorelist', async ctx => {
           if (Number(item['safetyStock']) > Number(item['factStock'])) {
             newArr.push(item)
           }
-          // Object.keys(item).forEach(key => {
-          //   if (Number(item['safetyStock'] < Number(item['factStock']))) {
-          //     newArr.push(item)
-          //     return
-          //   }
-          // })
         })
       }
       // console.log(newArr)
@@ -145,8 +111,19 @@ router.get('/search', new Auth(8).m,async ctx => {
   let {
     productId
   } = ctx.request.query;
-  console.log(productId)
   let productList = await Productlist.findOne({
+    where: { productId }
+  })
+  ctx.body = new SuccessModel(productList);
+})
+// 删除接口
+router.get('/delete', new Auth(32).m, async ctx => {
+  let {
+    productId,
+  } = ctx.request.query;
+  let productList = await Productlist.update({
+    state: 0,
+  },{
     where: { productId }
   })
   ctx.body = new SuccessModel(productList);

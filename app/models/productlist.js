@@ -111,7 +111,8 @@ Productlist.init({
     type: Sequelize.BIGINT()
   },
   state: {
-    type: Sequelize.INTEGER()
+    type: Sequelize.INTEGER(),
+    defaultValue: 1
   },
   author: {
     type: Sequelize.STRING(50)
